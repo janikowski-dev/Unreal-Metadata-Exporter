@@ -1,0 +1,24 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0.1",
+	"FriendlyName": "Metadata Exporter (Editor)",
+	"Description": "Unreal Engine editor plugin for exporting asset metadata to JSON for external tools and pipelines.",
+	"Category": "Pipeline",
+	"CreatedBy": "Adam Janikowski",
+	"CreatedByURL": "https://github.com/janikowski-dev",
+	"DocsURL": "https://github.com/janikowski-dev/Unreal-Metadata-Exporter",
+	"MarketplaceURL": "",
+	"SupportURL": "https://github.com/janikowski-dev/Unreal-Metadata-Exporter/issues",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "MetadataExporterEditor",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}

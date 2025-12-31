@@ -1,4 +1,4 @@
-#include "AssetValidatorEditorModule.h"
+#include "MetadataExporterEditorModule.h"
 
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "AssetRegistry/AssetData.h"
@@ -16,17 +16,17 @@
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 
-IMPLEMENT_MODULE(FAssetValidatorEditorModule, AssetValidatorEditor)
+IMPLEMENT_MODULE(FMetadataExporterEditorModule, MetadataExporterEditor)
 
-void FAssetValidatorEditorModule::StartupModule()
+void FMetadataExporterEditorModule::StartupModule()
 {
     if (UToolMenus::IsToolMenuUIEnabled())
     {
-        UToolMenus::RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FAssetValidatorEditorModule::RegisterMenus));
+        UToolMenus::RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FMetadataExporterEditorModule::RegisterMenus));
     }
 }
 
-void FAssetValidatorEditorModule::ShutdownModule()
+void FMetadataExporterEditorModule::ShutdownModule()
 {
     if (UToolMenus::IsToolMenuUIEnabled())
     {
@@ -34,7 +34,7 @@ void FAssetValidatorEditorModule::ShutdownModule()
     }
 }
 
-void FAssetValidatorEditorModule::ExportAssetsToJson()
+void FMetadataExporterEditorModule::ExportAssetsToJson()
 {
     ResetExport();
     GetAllAssets();
@@ -43,7 +43,7 @@ void FAssetValidatorEditorModule::ExportAssetsToJson()
     SaveToJson();
 }
 
-void FAssetValidatorEditorModule::RegisterMenus()
+void FMetadataExporterEditorModule::RegisterMenus()
 {
     UToolMenus* ToolMenus = UToolMenus::Get();
     
@@ -59,31 +59,31 @@ void FAssetValidatorEditorModule::RegisterMenus()
         return;
     }
 
-    FToolMenuSection& Section = Menu->AddSection("AssetValidator",FText::FromString("Asset Validator"));
+    FToolMenuSection& Section = Menu->AddSection("MetadataExporter",FText::FromString("Asset Validator"));
     
     const FName InName = "ExportAssetsForValidation";
     const FText Label = FText::FromString("Export Assets for Validation");
     const FText ToolTip = FText::FromString("Export asset metadata to JSON for external validation");
     const FSlateIcon Icon = FSlateIcon();
-    const FUIAction Callback = FUIAction(FExecuteAction::CreateRaw(this, &FAssetValidatorEditorModule::ExportAssetsToJson));
+    const FUIAction Callback = FUIAction(FExecuteAction::CreateRaw(this, &FMetadataExporterEditorModule::ExportAssetsToJson));
     
     Section.AddMenuEntry(InName, Label, ToolTip, Icon, Callback);
 }
 
-void FAssetValidatorEditorModule::ResetExport()
+void FMetadataExporterEditorModule::ResetExport()
 {
     ExportedAssets.Reset();
     OutputString.Reset();
     Assets.Reset();
 }
 
-void FAssetValidatorEditorModule::GetAllAssets()
+void FMetadataExporterEditorModule::GetAllAssets()
 {
     const FAssetRegistryModule& AssetRegistry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
     AssetRegistry.Get().GetAllAssets(Assets);
 }
 
-void FAssetValidatorEditorModule::ExportMeshes()
+void FMetadataExporterEditorModule::ExportMeshes()
 {
     const FTopLevelAssetPath StaticMeshClassPath = UStaticMesh::StaticClass()->GetClassPathName();
 
@@ -126,7 +126,7 @@ void FAssetValidatorEditorModule::ExportMeshes()
     }
 }
 
-void FAssetValidatorEditorModule::ExportTextures()
+void FMetadataExporterEditorModule::ExportTextures()
 {
     const FTopLevelAssetPath TextureClassPath = UTexture2D::StaticClass()->GetClassPathName();
     
@@ -159,7 +159,7 @@ void FAssetValidatorEditorModule::ExportTextures()
     }
 }
 
-void FAssetValidatorEditorModule::SaveToJson()
+void FMetadataExporterEditorModule::SaveToJson()
 {
     const FString Timestamp = FDateTime::Now().ToString(TEXT("%Y-%m-%d_%H-%M-%S"));
     const FString FileName = FString::Printf(TEXT("AssetsInfo_%s.json"), *Timestamp);
@@ -171,5 +171,5 @@ void FAssetValidatorEditorModule::SaveToJson()
     
     FFileHelper::SaveStringToFile(OutputString, *OutputPath);
     
-    UE_LOG(LogTemp, Log, TEXT("[AssetValidator] Exported %d assets to %s"), ExportedAssets.Num(), *OutputPath);
+    UE_LOG(LogTemp, Log, TEXT("[MetadataExporter] Exported %d assets to %s"), ExportedAssets.Num(), *OutputPath);
 }

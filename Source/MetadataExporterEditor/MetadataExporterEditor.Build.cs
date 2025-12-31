@@ -1,8 +1,8 @@
 using UnrealBuildTool;
 
-public class AssetValidatorEditor : ModuleRules
+public class MetadataExporterEditor : ModuleRules
 {
-	public AssetValidatorEditor(ReadOnlyTargetRules Target) : base(Target)
+	public MetadataExporterEditor(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         

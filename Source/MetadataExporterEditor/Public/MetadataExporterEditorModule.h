@@ -2,7 +2,7 @@
 
 #include "Modules/ModuleInterface.h"
 
-class FAssetValidatorEditorModule : public IModuleInterface
+class FMetadataExporterEditorModule : public IModuleInterface
 {
 public:
 	virtual void StartupModule() override;
