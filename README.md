@@ -1,6 +1,6 @@
-# Unreal Asset Validator
+# Unreal Metadata Exporter
 
-**Unreal Asset Validator** is an Unreal Engine editor plugin that connects Unreal projects to an external, engine-agnostic asset validation pipeline.
+**Unreal Metadata Exporter** is an Unreal Engine editor plugin that connects Unreal projects to an external, engine-agnostic asset validation pipeline.
 
 The plugin handles **editor integration and asset metadata export only**.  
 All validation logic runs outside Unreal Engine.
@@ -19,7 +19,7 @@ Unreal-specific code is kept minimal and limited to editor concerns.
 ## Pipeline Overview
 
 ```
-Unreal Editor → JSON (metadata export) → Asset Validator
+Unreal Editor (metadata export) → JSON → Asset Validator
 ```
 
 - Unreal Engine: asset selection and metadata extraction  
