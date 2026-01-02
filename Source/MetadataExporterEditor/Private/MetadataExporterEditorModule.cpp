@@ -1,5 +1,8 @@
 #include "MetadataExporterEditorModule.h"
 
+#include "Exporter/MeshSerializer.h"
+#include "Exporter/TextureSerializer.h"
+
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "AssetRegistry/AssetData.h"
 
@@ -38,8 +41,8 @@ void FMetadataExporterEditorModule::ExportAssetsToJson()
 {
     ResetExport();
     GetAllAssets();
-    ExportMeshes();
-    ExportTextures();
+    ExportMetadata<FTextureSerializer>(Assets, ExportedMetadata);
+    ExportMetadata<FMeshSerializer>(Assets, ExportedMetadata);
     SaveToJson();
 }
 
@@ -72,7 +75,7 @@ void FMetadataExporterEditorModule::RegisterMenus()
 
 void FMetadataExporterEditorModule::ResetExport()
 {
-    ExportedAssets.Reset();
+    ExportedMetadata.Reset();
     OutputString.Reset();
     Assets.Reset();
 }
@@ -83,93 +86,55 @@ void FMetadataExporterEditorModule::GetAllAssets()
     AssetRegistry.Get().GetAllAssets(Assets);
 }
 
-void FMetadataExporterEditorModule::ExportMeshes()
+template<typename TSerializer>
+void FMetadataExporterEditorModule::ExportMetadata(
+    const TArray<FAssetData>& Assets,
+    TArray<TSharedPtr<FJsonValue>>& OutExportedMetadata
+)
 {
-    const FTopLevelAssetPath StaticMeshClassPath = UStaticMesh::StaticClass()->GetClassPathName();
-
     for (const FAssetData& AssetData : Assets)
     {
-        if (AssetData.AssetClassPath != StaticMeshClassPath)
+        TSerializer Serializer(AssetData);
+
+        if (!Serializer.IsValid())
         {
             continue;
         }
 
-        UStaticMesh* Mesh = Cast<UStaticMesh>(AssetData.GetAsset());
-        
-        if (!Mesh)
-        {
-            continue;
-        }
-
-        int32 VertexCount = 0;
-        int32 TriangleCount = 0;
-
-        if (Mesh->GetRenderData() && Mesh->GetRenderData()->LODResources.Num() > 0)
-        {
-            const FStaticMeshLODResources& LOD = Mesh->GetRenderData()->LODResources[0];
-            VertexCount = LOD.GetNumVertices();
-            TriangleCount = LOD.GetNumTriangles();
-        }
-
-        TSharedPtr<FJsonObject> Metadata = MakeShared<FJsonObject>();
-        Metadata->SetNumberField(TEXT("Mesh.VertexCount"), VertexCount);
-        Metadata->SetNumberField(TEXT("Mesh.TriangleCount"), TriangleCount);
-
-        TSharedPtr<FJsonObject> JsonAsset = MakeShared<FJsonObject>();
-        JsonAsset->SetStringField(TEXT("Type"), TEXT("Mesh"));
-        JsonAsset->SetStringField(TEXT("Name"), AssetData.AssetName.ToString());
-        JsonAsset->SetStringField(TEXT("Path"), AssetData.GetObjectPathString());
-        JsonAsset->SetNumberField(TEXT("SizeInBytes"), Mesh->GetResourceSizeBytes(EResourceSizeMode::EstimatedTotal));
-        JsonAsset->SetObjectField(TEXT("Metadata"), Metadata);
-
-        ExportedAssets.Add(MakeShared<FJsonValueObject>(JsonAsset));
-    }
-}
-
-void FMetadataExporterEditorModule::ExportTextures()
-{
-    const FTopLevelAssetPath TextureClassPath = UTexture2D::StaticClass()->GetClassPathName();
-    
-    for (const FAssetData& AssetData : Assets)
-    {
-        if (AssetData.AssetClassPath != TextureClassPath)
-        {
-            continue;
-        }
-
-        UTexture2D* Texture = Cast<UTexture2D>(AssetData.GetAsset());
-        
-        if (!Texture)
-        {
-            continue;
-        }
-
-        TSharedPtr<FJsonObject> Metadata = MakeShared<FJsonObject>();
-        Metadata->SetNumberField(TEXT("Image.Width"), Texture->GetSizeX());
-        Metadata->SetNumberField(TEXT("Image.Height"), Texture->GetSizeY());
-
-        TSharedPtr<FJsonObject> JsonAsset = MakeShared<FJsonObject>();
-        JsonAsset->SetStringField(TEXT("Type"), TEXT("Image"));
-        JsonAsset->SetStringField(TEXT("Name"), AssetData.AssetName.ToString());
-        JsonAsset->SetStringField(TEXT("Path"), AssetData.GetObjectPathString());
-        JsonAsset->SetNumberField(TEXT("SizeInBytes"), Texture->GetResourceSizeBytes(EResourceSizeMode::EstimatedTotal));
-        JsonAsset->SetObjectField(TEXT("Metadata"), Metadata);
-        
-        ExportedAssets.Add(MakeShared<FJsonValueObject>(JsonAsset));
+        OutExportedMetadata.Add(Serializer.Serialize());
     }
 }
 
 void FMetadataExporterEditorModule::SaveToJson()
 {
     const FString Timestamp = FDateTime::Now().ToString(TEXT("%Y-%m-%d_%H-%M-%S"));
-    const FString FileName = FString::Printf(TEXT("AssetsInfo_%s.json"), *Timestamp);
-    const FString OutputPath = FPaths::ProjectSavedDir() / TEXT("Assets") / FileName;
+    const FString FileName = FString::Printf(TEXT("Metadata_%s.json"), *Timestamp);
+    const FString ExportPath = FPaths::ProjectSavedDir() / TEXT("Exports");
+    const FString OutputPath = ExportPath / FileName;
     IFileManager::Get().MakeDirectory(*FPaths::GetPath(OutputPath), true);
     
     const TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&OutputString);
-    FJsonSerializer::Serialize(ExportedAssets, Writer);
+    FJsonSerializer::Serialize(ExportedMetadata, Writer);
     
     FFileHelper::SaveStringToFile(OutputString, *OutputPath);
+
+    UE_LOG(LogTemp, Log, TEXT("[MetadataExporter] Exported %d asset metadata to %s"), ExportedMetadata.Num(), *OutputPath);
     
-    UE_LOG(LogTemp, Log, TEXT("[MetadataExporter] Exported %d assets to %s"), ExportedAssets.Num(), *OutputPath);
+    const FText Message = FText::FromString(
+        TEXT("Metadata export completed successfully.\n\n")
+        TEXT("Would you like to open the exports folder?")
+    );
+
+    const EAppReturnType::Type Result =
+        FMessageDialog::Open(
+            EAppMsgType::YesNo,
+            Message
+        );
+    
+    const FString FullExportPath = FPaths::ConvertRelativePathToFull(ExportPath);
+    
+    if (Result == EAppReturnType::Yes)
+    {
+        FPlatformProcess::ExploreFolder(*FullExportPath);
+    }
 }
