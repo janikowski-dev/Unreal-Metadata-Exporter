@@ -19,7 +19,7 @@ protected:
 
 	virtual EAssetType GetAssetType() const override
 	{
-		return EAssetType::Texture;
+		return EAssetType::Image;
 	}
 public:
 	virtual bool IsValid() const override

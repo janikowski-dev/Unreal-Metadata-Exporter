@@ -50,7 +50,7 @@ private:
 		{
 		case EAssetType::Mesh:
 			return TEXT("Mesh");
-		case EAssetType::Texture:
+		case EAssetType::Image:
 			return TEXT("Texture");
 		}
 

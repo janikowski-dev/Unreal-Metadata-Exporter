@@ -3,5 +3,5 @@
 enum class EAssetType : uint8
 {
 	Mesh,
-	Texture
+	Image
 };

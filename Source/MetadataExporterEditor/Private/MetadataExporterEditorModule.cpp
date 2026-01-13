@@ -40,7 +40,7 @@ void FMetadataExporterEditorModule::ShutdownModule()
 void FMetadataExporterEditorModule::ExportAssetsToJson()
 {
     ResetExport();
-    GetAllAssets();
+    GetGameAssets();
     ExportMetadata<FTextureSerializer>(Assets, ExportedMetadata);
     ExportMetadata<FMeshSerializer>(Assets, ExportedMetadata);
     SaveToJson();
@@ -80,10 +80,15 @@ void FMetadataExporterEditorModule::ResetExport()
     Assets.Reset();
 }
 
-void FMetadataExporterEditorModule::GetAllAssets()
+void FMetadataExporterEditorModule::GetGameAssets()
 {
     const FAssetRegistryModule& AssetRegistry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
-    AssetRegistry.Get().GetAllAssets(Assets);
+
+    FARFilter Filter;
+    Filter.PackagePaths.Add(FName("/Game"));
+    Filter.bRecursivePaths = true;
+
+    AssetRegistry.Get().GetAssets(Filter, Assets);
 }
 
 template<typename TSerializer>

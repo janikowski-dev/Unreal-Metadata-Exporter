@@ -21,7 +21,7 @@ private:
 	void RegisterMenus();
 	void ExportAssetsToJson();
 	void ResetExport();
-	void GetAllAssets();
+	void GetGameAssets();
 	template<typename TSerializer>
 	void ExportMetadata(
 		const TArray<FAssetData>& Assets,
