@@ -39,14 +39,6 @@ https://github.com/janikowski-dev/Asset-Validator
 
 ---
 
-## Scope
-
-This plugin intentionally contains **no validation logic**.
-
-It exists solely to bridge Unreal Engine with an external validation system.
-
----
-
 ## Installation (for Unreal Developers)
 
 ### Requirements
